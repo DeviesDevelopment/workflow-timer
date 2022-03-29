@@ -18,3 +18,4 @@ runs:
           return currentRun.data.run_started_at
     - run: |
         echo "${{ steps.startTime.outputs.result }}"
+      shell: bash
