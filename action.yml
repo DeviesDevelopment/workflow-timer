@@ -31,6 +31,6 @@ runs:
           const runs = await github.rest.actions.listWorkflowRuns({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            workflow_id: "${{ steps.duration.outputs.result.workflowId }}"
+            workflow_id: context.workflow
           });
           console.log(runs)
