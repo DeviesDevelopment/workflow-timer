@@ -20,3 +20,4 @@ runs:
           return durationInMillis;
     - run: |
         echo "${{ steps.duration.outputs.result }}"
+      shell: bash
