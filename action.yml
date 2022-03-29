@@ -7,6 +7,7 @@ runs:
     - run: "echo Fredrik och Ricki Testar"
       shell: bash
     - uses: actions/github-script@v6
+      id: startTime
       with:
         script: |
           const currentRun = await github.rest.actions.getWorkflowRun({
@@ -14,4 +15,6 @@ runs:
             repo: context.repo.repo,
             run_id: context.runId
           });
-          console.log(currentRun);
+          return currentRun.data.run_started_at
+    - run: |
+        echo "${{ steps.startTime.outputs.result }}"
