@@ -16,7 +16,7 @@ runs:
             run_id: context.runId
           });
           const startedAt = currentRun.data.run_started_at
-          const durationInMillis = newDate().getTime() - new Date(startedAt).getTime();
+          const durationInMillis = new Date().getTime() - new Date(startedAt).getTime();
           return durationInMillis;
     - run: |
         echo "${{ steps.duration.outputs.result }}"
