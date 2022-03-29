@@ -6,3 +6,11 @@ runs:
   steps:
     - run: "echo Fredrik och Ricki Testar"
       shell: bash
+    - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ env.GITHUB_RUN_ID }}
+            });
