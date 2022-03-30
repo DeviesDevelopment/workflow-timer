@@ -4,8 +4,6 @@ description: "Worfklow timer..."
 runs:
   using: "composite"
   steps:
-    - run: "echo Fredrik och Ricki Testar"
-      shell: bash
     - uses: actions/github-script@v6
       id: duration
       with:
