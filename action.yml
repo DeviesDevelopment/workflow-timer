@@ -16,19 +16,11 @@ runs:
           });
           const startedAt = currentRun.data.run_started_at
           const durationInMillis = currentTime - new Date(startedAt).getTime();
-          return {
-            durationInMillis: durationInMillis,
-            workflowId: currentRun.data.workflow_id
-          }
-    - run: |
-        echo "${{ steps.duration.outputs.result }}"
-      shell: bash
-    - uses: actions/github-script@v6
-      with:
-        script: |
-          const runs = await github.rest.actions.listWorkflowRuns({
+          const workflowId = currentRun.data.workflow_id
+          
+          const historical_runs = await github.rest.actions.listWorkflowRuns({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            workflow_id: context.workflow
-          });
-          console.log(runs)
+            workflow_id: workflowId
+          });  
+          console.log(historical_runs)
