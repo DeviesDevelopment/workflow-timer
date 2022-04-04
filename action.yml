@@ -29,8 +29,10 @@ runs:
             x.status === 'completed' &&
             x.conclusion == 'success'
           );
-          for (const run of latestRunsOnMaster) {
-             const durationInMillis = new Date(run.run_started_at).getTime() - new Date(run.updated_at).getTime()
-             console.log(durationInMillis)
-          }
-          console.log(currentRunDurationInMillis)
+
+          const latestRunOnMaster = latestRunsOnMaster[0]
+          const latestMasterRunDurationInMillis = new Date(latestRunOnMaster.updated_at).getTime() - new Date(latestRunOnMaster.run_started_at).getTime();
+          console.log("latest run on master: " + latestMasterRunDurationInMillis)
+          console.log("current run :" + currentRunDurationInMillis)
+          console.log("diff: " + (currentRunDurationInMillis - latestMasterRunDurationInMillis))
+          console.log("percentage diff: " + (currentRunDurationInMillis/latestMasterRunDurationInMillis)) 
