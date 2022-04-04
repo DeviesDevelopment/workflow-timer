@@ -15,13 +15,22 @@ runs:
             run_id: context.runId
           });
           const startedAt = currentRun.data.run_started_at
-          const durationInMillis = currentTime - new Date(startedAt).getTime();
+          const currentRunDurationInMillis = currentTime - new Date(startedAt).getTime();
           
           const workflowId = currentRun.data.workflow_id
           const historical_runs = await github.rest.actions.listWorkflowRuns({
             owner: context.repo.owner,
             repo: context.repo.repo,
             workflow_id: workflowId
-          });  
-          console.log(historical_runs.data)
-          console.log(durationInMillis)
+          });
+
+          const latestRunsOnMaster = historical_runs.data.workflow_runs.filter( x =>
+            x.head_branch === 'master' &&
+            x.status === 'completed' &&
+            x.conclusion == 'success'
+          );
+          for (const run of latestRunsOnMaster) {
+             const durationInMillis = new Date(run.run_started_at).getTime() - new Date(run.updated_at).getTime()
+             console.log(durationInMillis)
+          }
+          console.log(currentRunDurationInMillis)
