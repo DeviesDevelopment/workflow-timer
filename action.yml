@@ -16,11 +16,12 @@ runs:
           });
           const startedAt = currentRun.data.run_started_at
           const durationInMillis = currentTime - new Date(startedAt).getTime();
-          const workflowId = currentRun.data.workflow_id
           
+          const workflowId = currentRun.data.workflow_id
           const historical_runs = await github.rest.actions.listWorkflowRuns({
             owner: context.repo.owner,
             repo: context.repo.repo,
             workflow_id: workflowId
           });  
-          console.log(historical_runs)
+          console.log(historical_runs.data)
+          console.log(durationInMillis)
