@@ -36,6 +36,13 @@ runs:
           const percentageDiff = ((currentRunDurationInMillis/latestMasterRunDurationInMillis) * 100).toFixed(2)
           const outcome = (diffInSeconds > 0) ? "an increase" : "a decrease"
          
-          const outputMessage =  'Workflow \"' + context.workflow + '\" took ' +  (currentRunDurationInMillis / 1000) + 's which is ' + outcome + ' with ' + Math.abs(diffInSeconds) + 's (' + Math.abs(percentageDiff) + '%) compared with master/main.'
+          const outputMessage =  'Workflow \"' + context.workflow + '\" took ' +  (currentRunDurationInMillis / 1000) + 's which is ' + outcome + ' with ' + Math.abs(diffInSeconds) + 's (' + Math.abs(percentageDiff) + '%) compared to latest run on master/main.'
  
           console.log(outputMessage)
+
+          github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: outputMessage
+          })
