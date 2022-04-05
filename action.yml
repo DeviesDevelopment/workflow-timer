@@ -25,7 +25,7 @@ runs:
           });
 
           const latestRunsOnMaster = historical_runs.data.workflow_runs.filter( x =>
-            x.head_branch === 'master' &&
+            (x.head_branch === 'master' || x.head_branch === 'main') &&
             x.status === 'completed' &&
             x.conclusion == 'success'
           );
@@ -33,9 +33,9 @@ runs:
           const latestRunOnMaster = latestRunsOnMaster[0]
           const latestMasterRunDurationInMillis = new Date(latestRunOnMaster.updated_at).getTime() - new Date(latestRunOnMaster.run_started_at).getTime();
           const diffInSeconds = (currentRunDurationInMillis - latestMasterRunDurationInMillis) / 1000
-          const percentageDiff = (currentRunDurationInMillis/latestMasterRunDurationInMillis) * 100
+          const percentageDiff = ((currentRunDurationInMillis/latestMasterRunDurationInMillis) * 100).toFixed(2)
           const outcome = (diffInSeconds > 0) ? "an increase" : "a decrease"
          
-          const outputMessage =  'Workflow ' + context.workflow + ' took ' +  (currentRunDurationInMillis / 1000) + 's which is ' + outcome + ' with ' + Math.abs(diffInSeconds) + 's (' + Math.abs(percentageDiff) + '%) compared with master/main.'
+          const outputMessage =  'Workflow \"' + context.workflow + '\" took ' +  (currentRunDurationInMillis / 1000) + 's which is ' + outcome + ' with ' + Math.abs(diffInSeconds) + 's (' + Math.abs(percentageDiff) + '%) compared with master/main.'
  
           console.log(outputMessage)
