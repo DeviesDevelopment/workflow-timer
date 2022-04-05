@@ -37,7 +37,7 @@ runs:
           const outcome = (diffInSeconds > 0) ? "an increase" : "a decrease"
           
           console.log(
-            'Workfow x took ${currentRunDurationInMillis / 1000}s which is ${outcome} with ${Math.abs(diffInSeconds)}s (${Math.abs(percentageDiff)}%) '
+            'Workfow x took ' +  (currentRunDurationInMillis / 1000) + 's which is ' + outcome + ' with ' + Math.abs(diffInSeconds) + 's (' + Math.abs(percentageDiff) + ')%'
           )
           
           console.log("latest run on master: " + latestMasterRunDurationInMillis)
