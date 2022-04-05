@@ -32,6 +32,14 @@ runs:
 
           const latestRunOnMaster = latestRunsOnMaster[0]
           const latestMasterRunDurationInMillis = new Date(latestRunOnMaster.updated_at).getTime() - new Date(latestRunOnMaster.run_started_at).getTime();
+          const diffInSeconds = (currentRunDurationInMillis - latestMasterRunDurationInMillis) / 1000
+          const percentageDiff = currentRunDurationInMillis/latestMasterRunDurationInMillis
+          const outcome = (diffInSeconds > 0) ? "an increase" : "a decrease"
+          
+          console.log(
+            'Workfow x took ${currentRunDurationInMillis / 1000}s which is ${outcome} with ${Math.abs(diffInSeconds)}s (${Math.abs(percentageDiff)}%) '
+          )
+          
           console.log("latest run on master: " + latestMasterRunDurationInMillis)
           console.log("current run :" + currentRunDurationInMillis)
           console.log("diff: " + (currentRunDurationInMillis - latestMasterRunDurationInMillis))
