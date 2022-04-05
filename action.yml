@@ -37,7 +37,7 @@ runs:
             const latestRunOnMaster = latestRunsOnMaster[0]
             const latestMasterRunDurationInMillis = new Date(latestRunOnMaster.updated_at).getTime() - new Date(latestRunOnMaster.run_started_at).getTime();
             const diffInSeconds = (currentRunDurationInMillis - latestMasterRunDurationInMillis) / 1000
-            const percentageDiff = ((currentRunDurationInMillis/latestMasterRunDurationInMillis) * 100).toFixed(2)
+            const percentageDiff = ((1 - (currentRunDurationInMillis/latestMasterRunDurationInMillis)) * 100).toFixed(2)
             const outcome = (diffInSeconds > 0) ? "an increase" : "a decrease"
          
             outputMessage =  '🕒 Workflow \"' + context.workflow + '\" took ' +  (currentRunDurationInMillis / 1000) + 's which is ' + outcome + ' with ' + Math.abs(diffInSeconds) + 's (' + Math.abs(percentageDiff) + '%) compared to latest run on master/main.'
