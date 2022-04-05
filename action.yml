@@ -30,19 +30,23 @@ runs:
             x.conclusion == 'success'
           );
 
-          const latestRunOnMaster = latestRunsOnMaster[0]
-          const latestMasterRunDurationInMillis = new Date(latestRunOnMaster.updated_at).getTime() - new Date(latestRunOnMaster.run_started_at).getTime();
-          const diffInSeconds = (currentRunDurationInMillis - latestMasterRunDurationInMillis) / 1000
-          const percentageDiff = ((currentRunDurationInMillis/latestMasterRunDurationInMillis) * 100).toFixed(2)
-          const outcome = (diffInSeconds > 0) ? "an increase" : "a decrease"
+          var outputMessage = ''
+          if (latestRunsOnMaster.length === 0) {
+            outputMessage = "No data for historical runs on master/main branch found. Can't compare."
+          } else {
+            const latestRunOnMaster = latestRunsOnMaster[0]
+            const latestMasterRunDurationInMillis = new Date(latestRunOnMaster.updated_at).getTime() - new Date(latestRunOnMaster.run_started_at).getTime();
+            const diffInSeconds = (currentRunDurationInMillis - latestMasterRunDurationInMillis) / 1000
+            const percentageDiff = ((currentRunDurationInMillis/latestMasterRunDurationInMillis) * 100).toFixed(2)
+            const outcome = (diffInSeconds > 0) ? "an increase" : "a decrease"
          
-          const outputMessage =  '🕒 Workflow \"' + context.workflow + '\" took ' +  (currentRunDurationInMillis / 1000) + 's which is ' + outcome + ' with ' + Math.abs(diffInSeconds) + 's (' + Math.abs(percentageDiff) + '%) compared to latest run on master/main.'
- 
+            const outputMessage =  '🕒 Workflow \"' + context.workflow + '\" took ' +  (currentRunDurationInMillis / 1000) + 's which is ' + outcome + ' with ' + Math.abs(diffInSeconds) + 's (' + Math.abs(percentageDiff) + '%) compared to latest run on master/main.'
+          }
+
           console.log(outputMessage)
-         
           github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: outputMessage
-            })
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: outputMessage
+          })
