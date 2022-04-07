@@ -1,5 +1,9 @@
 name: "Workflow Timer"
 description: "Worfklow timer..."
+branding:
+  icon: 'clock'
+  color: 'green'
+
 
 runs:
   using: "composite"
