@@ -1,5 +1,5 @@
 name: "Workflow Timer"
-description: "Worfklow timer..."
+description: "Measures the duration of the workflow and compares it to the duration of historical runs."
 branding:
   icon: 'clock'
   color: 'green'
