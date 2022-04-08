@@ -12,6 +12,9 @@ runs:
       id: duration
       with:
         script: |
+          if (context.eventName != 'pull_request') {
+            proccess.exit(1)
+          }
           const currentTime = new Date().getTime();
           const currentRun = await github.rest.actions.getWorkflowRun({
             owner: context.repo.owner,
@@ -47,7 +50,6 @@ runs:
             outputMessage =  '🕒 Workflow \"' + context.workflow + '\" took ' +  (currentRunDurationInMillis / 1000) + 's which is ' + outcome + ' with ' + Math.abs(diffInSeconds) + 's (' + Math.abs(percentageDiff) + '%) compared to latest run on master/main.'
           }
 
-          console.log(outputMessage)
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
