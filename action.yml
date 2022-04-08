@@ -13,7 +13,7 @@ runs:
       with:
         script: |
           if (context.eventName != 'pull_request') {
-            proccess.exit(1)
+            proccess.exit(0)
           }
           const currentTime = new Date().getTime();
           const currentRun = await github.rest.actions.getWorkflowRun({
