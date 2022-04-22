@@ -12,6 +12,7 @@ runs:
       id: duration
       with:
         script: |
+          console.log(context.eventName)
           if (context.eventName != 'pull_request') {
             proccess.exit(0)
           }
