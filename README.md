@@ -16,9 +16,10 @@ As the **very last job** in your workflow, add
 - name: Time reporter
   uses: DeviesDevelopment/workflow-timer@v0.0.2
 ```
+
 Workflow-timer compares the current workflow run with the latest run on the master/main branch. Therefore, the same workflow needs to run when merging with the master as well, otherwise, there will be no data to compare. We suggest having the following definition in the workflow:
 
-```
+```yaml
 on:
   push:
     branches: master
@@ -27,4 +28,5 @@ on:
 ```
 
 ## How to contribute
+
 Feel free to open a pull request! All contributions, no matter how small, are more than welcome. Happy hacking!
