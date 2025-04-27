@@ -3,7 +3,10 @@ description: "Measures the duration of the workflow and compares it to the durat
 branding:
   icon: "clock"
   color: "green"
-
+inputs:
+  GITHUB_TOKEN:
+    description: "GitHub token to interact with the repository."
+    required: true
 runs:
   using: "node20"
   main: "dist/index.js"
