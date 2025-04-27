@@ -3,7 +3,7 @@ import { getOctokit, context } from "@actions/github";
 
 export async function run(): Promise<void> {
   try {
-    const github = getOctokit(process.env.GITHUB_TOKEN!);
+    const github = getOctokit(core.getInput("token"));
     if (context.eventName != "pull_request") {
       return;
     }

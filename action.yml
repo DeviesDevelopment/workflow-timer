@@ -4,9 +4,9 @@ branding:
   icon: "clock"
   color: "green"
 inputs:
-  GITHUB_TOKEN:
-    description: "GitHub token to interact with the repository."
-    required: true
+  token:
+    description: "GITHUB_TOKEN or a repo scoped PAT."
+    default: ${{ github.token }}
 runs:
   using: "node20"
   main: "dist/index.js"
