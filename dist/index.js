@@ -31231,7 +31231,7 @@ var githubExports = requireGithub();
 
 async function run() {
     try {
-        const github = githubExports.getOctokit(process.env.GITHUB_TOKEN);
+        const github = githubExports.getOctokit(coreExports.getInput("token"));
         if (githubExports.context.eventName != "pull_request") {
             return;
         }
