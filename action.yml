@@ -72,8 +72,7 @@ runs:
             return (
               comment?.user?.login === 'github-actions[bot]' &&
               comment?.user?.type === "Bot" &&
-              comment?.body?.startsWith('🕒 Workflow \"') &&
-              comment?.body?.includes(context.workflow)
+              comment?.body?.startsWith(`🕒 Workflow "${context.workflow}" took `)
               );
           })
 
