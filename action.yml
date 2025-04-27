@@ -1,9 +1,8 @@
 name: "Workflow Timer"
 description: "Measures the duration of the workflow and compares it to the duration of historical runs."
 branding:
-  icon: 'clock'
-  color: 'green'
-
+  icon: "clock"
+  color: "green"
 
 runs:
   using: "composite"
@@ -15,6 +14,7 @@ runs:
           if (context.eventName != 'pull_request') {
             return
           }
+
           const currentTime = new Date().getTime();
           const currentRun = await github.rest.actions.getWorkflowRun({
             owner: context.repo.owner,
@@ -23,7 +23,7 @@ runs:
           });
           const startedAt = currentRun.data.run_started_at
           const currentRunDurationInMillis = currentTime - new Date(startedAt).getTime();
-          
+
           const workflowId = currentRun.data.workflow_id
           const historical_runs = await github.rest.actions.listWorkflowRuns({
             owner: context.repo.owner,
@@ -37,7 +37,7 @@ runs:
             x.conclusion == 'success'
           );
 
-          var outputMessage = ''
+          let outputMessage = ''
           if (latestRunsOnMaster.length === 0) {
             outputMessage = "No data for historical runs on master/main branch found. Can't compare."
           } else {
@@ -46,13 +46,41 @@ runs:
             const diffInSeconds = (currentRunDurationInMillis - latestMasterRunDurationInMillis) / 1000
             const percentageDiff = ((1 - (currentRunDurationInMillis/latestMasterRunDurationInMillis)) * 100).toFixed(2)
             const outcome = (diffInSeconds > 0) ? "an increase" : "a decrease"
-         
+
             outputMessage =  '🕒 Workflow \"' + context.workflow + '\" took ' +  (currentRunDurationInMillis / 1000) + 's which is ' + outcome + ' with ' + Math.abs(diffInSeconds) + 's (' + Math.abs(percentageDiff) + '%) compared to latest run on master/main.'
           }
 
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
+          const commentData = {
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: outputMessage
+            issue_number: context.issue.number,
+          };
+
+          const comments = await github.rest.issues.listComments(commentData);
+
+          /**
+          * Add the body content after comments are fetched so that it's
+          * not included in the search for existing comments.
+          */
+          commentData.body = outputMessage;
+
+          /**
+          * Search comments from the bottom-up to find the most recent comment
+          * from the GitHub Actions bot that matches our criteria.
+          */
+          const existingComment = comments.data.reverse().find(comment => {
+            return (
+              comment?.user?.login === 'github-actions[bot]' &&
+              comment?.user?.type === "Bot" &&
+              comment?.body?.startsWith(`🕒 Workflow "${context.workflow}" took `)
+              );
           })
+
+          // If the comment exists then update instead of creating a new one.
+          const action = existingComment ? "updateComment" : "createComment";
+
+          if (existingComment) {
+              commentData.comment_id = existingComment.id;
+          }
+
+          await github.rest.issues[action](commentData);
