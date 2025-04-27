@@ -1,9 +1,8 @@
 name: "Workflow Timer"
 description: "Measures the duration of the workflow and compares it to the duration of historical runs."
 branding:
-  icon: 'clock'
-  color: 'green'
-
+  icon: "clock"
+  color: "green"
 
 runs:
   using: "composite"
@@ -73,7 +72,8 @@ runs:
             return (
               comment?.user?.login === 'github-actions[bot]' &&
               comment?.user?.type === "Bot" &&
-              comment?.body?.startsWith('🕒 Workflow \"')
+              comment?.body?.startsWith('🕒 Workflow \"') &&
+              comment?.body?.includes(context.workflow)
               );
           })
 
