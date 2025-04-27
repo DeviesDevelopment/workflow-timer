@@ -2,7 +2,99 @@ import * as core from "@actions/core";
 
 export async function run(): Promise<void> {
   try {
-    console.log("Hello World!");
+    if (context.eventName != "pull_request") {
+      return;
+    }
+
+    const currentTime = new Date().getTime();
+    const currentRun = await github.rest.actions.getWorkflowRun({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      run_id: context.runId,
+    });
+    const startedAt = currentRun.data.run_started_at;
+    const currentRunDurationInMillis =
+      currentTime - new Date(startedAt).getTime();
+
+    const workflowId = currentRun.data.workflow_id;
+    const historical_runs = await github.rest.actions.listWorkflowRuns({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      workflow_id: workflowId,
+    });
+
+    const latestRunsOnMaster = historical_runs.data.workflow_runs.filter(
+      (x) =>
+        (x.head_branch === "master" || x.head_branch === "main") &&
+        x.status === "completed" &&
+        x.conclusion == "success",
+    );
+
+    let outputMessage = "";
+    if (latestRunsOnMaster.length === 0) {
+      outputMessage =
+        "No data for historical runs on master/main branch found. Can't compare.";
+    } else {
+      const latestRunOnMaster = latestRunsOnMaster[0];
+      const latestMasterRunDurationInMillis =
+        new Date(latestRunOnMaster.updated_at).getTime() -
+        new Date(latestRunOnMaster.run_started_at).getTime();
+      const diffInSeconds =
+        (currentRunDurationInMillis - latestMasterRunDurationInMillis) / 1000;
+      const percentageDiff = (
+        (1 - currentRunDurationInMillis / latestMasterRunDurationInMillis) *
+        100
+      ).toFixed(2);
+      const outcome = diffInSeconds > 0 ? "an increase" : "a decrease";
+
+      outputMessage =
+        '🕒 Workflow \"' +
+        context.workflow +
+        '\" took ' +
+        currentRunDurationInMillis / 1000 +
+        "s which is " +
+        outcome +
+        " with " +
+        Math.abs(diffInSeconds) +
+        "s (" +
+        Math.abs(percentageDiff) +
+        "%) compared to latest run on master/main.";
+    }
+
+    const commentData = {
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      issue_number: context.issue.number,
+    };
+
+    const comments = await github.rest.issues.listComments(commentData);
+
+    /**
+     * Add the body content after comments are fetched so that it's
+     * not included in the search for existing comments.
+     */
+    commentData.body = outputMessage;
+
+    /**
+     * Search comments from the bottom-up to find the most recent comment
+     * from the GitHub Actions bot that matches our criteria.
+     */
+    const existingComment = comments.data.reverse().find((comment) => {
+      return (
+        comment?.user?.login === "github-actions[bot]" &&
+        comment?.user?.type === "Bot" &&
+        comment?.body?.startsWith(`🕒 Workflow "${context.workflow}" took `)
+      );
+    });
+
+    // If the comment exists then update instead of creating a new one.
+    const action = existingComment ? "updateComment" : "createComment";
+
+    if (existingComment) {
+      commentData.comment_id = existingComment.id;
+    }
+
+    await github.rest.issues[action](commentData);
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
   }
