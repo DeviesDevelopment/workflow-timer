@@ -69,7 +69,7 @@ runs:
           * Search comments from the bottom-up to find the most recent comment
           * from the GitHub Actions bot that matches our criteria.
           */
-          const existingComment = comments.reverse().find(comment => {
+          const existingComment = comments.data.reverse().find(comment => {
             return (
               comment?.user?.login === 'github-actions[bot]' &&
               comment?.user?.type === "Bot" &&
