@@ -1,7 +1,9 @@
 import * as core from "@actions/core";
+import { getOctokit, context } from "@actions/github";
 
 export async function run(): Promise<void> {
   try {
+    const github = getOctokit(process.env.GITHUB_TOKEN!);
     if (context.eventName != "pull_request") {
       return;
     }
