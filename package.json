@@ -1,0 +1,16 @@
+{
+  "name": "workflow-timer",
+  "version": "1.0.0",
+  "description": "Workflow-timer is a GitHub action that measures the duration of the workflow and compares it to the duration of historical runs.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.15.2",
+    "typescript": "^5.8.3"
+  }
+}
