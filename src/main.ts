@@ -55,9 +55,9 @@ export async function run(): Promise<void> {
       const outcome = diffInSeconds > 0 ? 'an increase' : 'a decrease'
 
       outputMessage =
-        '🕒 Workflow \"' +
+        '🕒 Workflow "' +
         context.workflow +
-        '\" took ' +
+        '" took ' +
         currentRunDurationInMillis / 1000 +
         's which is ' +
         outcome +
