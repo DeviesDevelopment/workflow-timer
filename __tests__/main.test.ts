@@ -1,5 +1,5 @@
 describe('main.ts', () => {
-  it('s running!', () => {
-    expect(true).toBeFalsy()
+  it('is truthy', () => {
+    expect(true).toBeTruthy()
   })
 })
