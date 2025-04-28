@@ -1,12 +1,14 @@
-name: "Workflow Timer"
-description: "Measures the duration of the workflow and compares it to the duration of historical runs."
+name: 'Workflow Timer'
+description:
+  'Measures the duration of the workflow and compares it to the duration of
+  historical runs.'
 branding:
-  icon: "clock"
-  color: "green"
+  icon: 'clock'
+  color: 'green'
 inputs:
   token:
-    description: "GITHUB_TOKEN or a repo scoped PAT."
+    description: 'GITHUB_TOKEN or a repo scoped PAT.'
     default: ${{ github.token }}
 runs:
-  using: "node20"
-  main: "dist/index.js"
+  using: 'node20'
+  main: 'dist/index.js'

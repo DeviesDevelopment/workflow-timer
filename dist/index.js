@@ -31231,31 +31231,31 @@ var githubExports = requireGithub();
 
 async function run() {
     try {
-        const github = githubExports.getOctokit(coreExports.getInput("token"));
-        if (githubExports.context.eventName != "pull_request") {
+        const github = githubExports.getOctokit(coreExports.getInput('token'));
+        if (githubExports.context.eventName != 'pull_request') {
             return;
         }
         const currentTime = new Date().getTime();
         const currentRun = await github.rest.actions.getWorkflowRun({
             owner: githubExports.context.repo.owner,
             repo: githubExports.context.repo.repo,
-            run_id: githubExports.context.runId,
+            run_id: githubExports.context.runId
         });
         const startedAt = currentRun.data.run_started_at;
         if (!startedAt) {
-            throw new Error("Missing run_started_at for current workflow run");
+            throw new Error('Missing run_started_at for current workflow run');
         }
         const currentRunDurationInMillis = currentTime - new Date(startedAt).getTime();
         const workflowId = currentRun.data.workflow_id;
         const historical_runs = await github.rest.actions.listWorkflowRuns({
             owner: githubExports.context.repo.owner,
             repo: githubExports.context.repo.repo,
-            workflow_id: workflowId,
+            workflow_id: workflowId
         });
-        const latestRunsOnMaster = historical_runs.data.workflow_runs.filter((x) => (x.head_branch === "master" || x.head_branch === "main") &&
-            x.status === "completed" &&
-            x.conclusion == "success");
-        let outputMessage = "";
+        const latestRunsOnMaster = historical_runs.data.workflow_runs.filter((x) => (x.head_branch === 'master' || x.head_branch === 'main') &&
+            x.status === 'completed' &&
+            x.conclusion == 'success');
+        let outputMessage = '';
         if (latestRunsOnMaster.length === 0) {
             outputMessage =
                 "No data for historical runs on master/main branch found. Can't compare.";
@@ -31263,51 +31263,50 @@ async function run() {
         else {
             const latestRunOnMaster = latestRunsOnMaster[0];
             if (!latestRunOnMaster.run_started_at) {
-                throw new Error("Missing run_started_at for latest run on master");
+                throw new Error('Missing run_started_at for latest run on master');
             }
             const latestMasterRunDurationInMillis = new Date(latestRunOnMaster.updated_at).getTime() -
                 new Date(latestRunOnMaster.run_started_at).getTime();
             const diffInSeconds = (currentRunDurationInMillis - latestMasterRunDurationInMillis) / 1000;
-            const percentageDiff = (1 - currentRunDurationInMillis / latestMasterRunDurationInMillis) *
-                100;
-            const outcome = diffInSeconds > 0 ? "an increase" : "a decrease";
+            const percentageDiff = (1 - currentRunDurationInMillis / latestMasterRunDurationInMillis) * 100;
+            const outcome = diffInSeconds > 0 ? 'an increase' : 'a decrease';
             outputMessage =
                 '🕒 Workflow \"' +
                     githubExports.context.workflow +
                     '\" took ' +
                     currentRunDurationInMillis / 1000 +
-                    "s which is " +
+                    's which is ' +
                     outcome +
-                    " with " +
+                    ' with ' +
                     Math.abs(diffInSeconds) +
-                    "s (" +
+                    's (' +
                     Math.abs(percentageDiff).toFixed(2) +
-                    "%) compared to latest run on master/main.";
+                    '%) compared to latest run on master/main.';
         }
         const existingComments = await github.rest.issues.listComments({
             owner: githubExports.context.repo.owner,
             repo: githubExports.context.repo.repo,
-            issue_number: githubExports.context.issue.number,
+            issue_number: githubExports.context.issue.number
         });
         const existingComment = existingComments.data.reverse().find((comment) => {
-            return (comment?.user?.login === "github-actions[bot]" &&
-                comment?.user?.type === "Bot" &&
+            return (comment?.user?.login === 'github-actions[bot]' &&
+                comment?.user?.type === 'Bot' &&
                 comment?.body?.startsWith(`🕒 Workflow "${githubExports.context.workflow}" took `));
         });
         const commentInput = {
             owner: githubExports.context.repo.owner,
             repo: githubExports.context.repo.repo,
             issue_number: githubExports.context.issue.number,
-            body: outputMessage,
+            body: outputMessage
         };
         if (existingComment) {
-            await github.rest.issues["updateComment"]({
+            await github.rest.issues['updateComment']({
                 ...commentInput,
-                comment_id: existingComment.id,
+                comment_id: existingComment.id
             });
         }
         else {
-            await github.rest.issues["createComment"](commentInput);
+            await github.rest.issues['createComment'](commentInput);
         }
     }
     catch (error) {
