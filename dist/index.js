@@ -31271,9 +31271,9 @@ async function run() {
             const percentageDiff = (1 - currentRunDurationInMillis / latestMasterRunDurationInMillis) * 100;
             const outcome = diffInSeconds > 0 ? 'an increase' : 'a decrease';
             outputMessage =
-                '🕒 Workflow \"' +
+                '🕒 Workflow "' +
                     githubExports.context.workflow +
-                    '\" took ' +
+                    '" took ' +
                     currentRunDurationInMillis / 1000 +
                     's which is ' +
                     outcome +
