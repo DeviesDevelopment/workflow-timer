@@ -34,5 +34,9 @@ jobs:
         id: npm-lint
         run: npm run lint
 
+      - name: Test
+        id: npm-ci-test
+        run: npm run ci-test
+
       - name: Workflow timer
         uses: './'
