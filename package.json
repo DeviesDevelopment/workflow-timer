@@ -19,7 +19,7 @@
     "package:watch": "npm run package -- --watch",
     "test": "NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 npx jest",
     "tsc": "tsc --noEmit",
-    "all": "npm run format:write && npm run lint && npm run tsc && npm run package"
+    "all": "npm run format:write && npm run lint && npm run test && npm run tsc && npm run package"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
