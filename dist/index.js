@@ -31242,6 +31242,9 @@ async function run() {
             run_id: githubExports.context.runId,
         });
         const startedAt = currentRun.data.run_started_at;
+        if (!startedAt) {
+            throw new Error("Missing run_started_at for current workflow run");
+        }
         const currentRunDurationInMillis = currentTime - new Date(startedAt).getTime();
         const workflowId = currentRun.data.workflow_id;
         const historical_runs = await github.rest.actions.listWorkflowRuns({
@@ -31259,11 +31262,14 @@ async function run() {
         }
         else {
             const latestRunOnMaster = latestRunsOnMaster[0];
+            if (!latestRunOnMaster.run_started_at) {
+                throw new Error("Missing run_started_at for latest run on master");
+            }
             const latestMasterRunDurationInMillis = new Date(latestRunOnMaster.updated_at).getTime() -
                 new Date(latestRunOnMaster.run_started_at).getTime();
             const diffInSeconds = (currentRunDurationInMillis - latestMasterRunDurationInMillis) / 1000;
-            const percentageDiff = ((1 - currentRunDurationInMillis / latestMasterRunDurationInMillis) *
-                100).toFixed(2);
+            const percentageDiff = (1 - currentRunDurationInMillis / latestMasterRunDurationInMillis) *
+                100;
             const outcome = diffInSeconds > 0 ? "an increase" : "a decrease";
             outputMessage =
                 '🕒 Workflow \"' +
@@ -31275,35 +31281,34 @@ async function run() {
                     " with " +
                     Math.abs(diffInSeconds) +
                     "s (" +
-                    Math.abs(percentageDiff) +
+                    Math.abs(percentageDiff).toFixed(2) +
                     "%) compared to latest run on master/main.";
         }
-        const commentData = {
+        const existingComments = await github.rest.issues.listComments({
             owner: githubExports.context.repo.owner,
             repo: githubExports.context.repo.repo,
             issue_number: githubExports.context.issue.number,
-        };
-        const comments = await github.rest.issues.listComments(commentData);
-        /**
-         * Add the body content after comments are fetched so that it's
-         * not included in the search for existing comments.
-         */
-        commentData.body = outputMessage;
-        /**
-         * Search comments from the bottom-up to find the most recent comment
-         * from the GitHub Actions bot that matches our criteria.
-         */
-        const existingComment = comments.data.reverse().find((comment) => {
+        });
+        const existingComment = existingComments.data.reverse().find((comment) => {
             return (comment?.user?.login === "github-actions[bot]" &&
                 comment?.user?.type === "Bot" &&
                 comment?.body?.startsWith(`🕒 Workflow "${githubExports.context.workflow}" took `));
         });
-        // If the comment exists then update instead of creating a new one.
-        const action = existingComment ? "updateComment" : "createComment";
+        const commentInput = {
+            owner: githubExports.context.repo.owner,
+            repo: githubExports.context.repo.repo,
+            issue_number: githubExports.context.issue.number,
+            body: outputMessage,
+        };
         if (existingComment) {
-            commentData.comment_id = existingComment.id;
+            await github.rest.issues["updateComment"]({
+                ...commentInput,
+                comment_id: existingComment.id,
+            });
         }
-        await github.rest.issues[action](commentData);
+        else {
+            await github.rest.issues["createComment"](commentInput);
+        }
     }
     catch (error) {
         if (error instanceof Error)
