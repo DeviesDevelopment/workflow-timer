@@ -25,3 +25,7 @@ jobs:
 
       - name: Typecheck
         run: npm run tsc
+
+      - name: Check Format
+        id: npm-format-check
+        run: npm run format:check
