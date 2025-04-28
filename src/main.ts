@@ -15,6 +15,10 @@ export async function run(): Promise<void> {
       run_id: context.runId,
     });
     const startedAt = currentRun.data.run_started_at;
+    if (!startedAt) {
+      throw new Error("Missing run_started_at for current workflow run");
+    }
+
     const currentRunDurationInMillis =
       currentTime - new Date(startedAt).getTime();
 
@@ -38,15 +42,17 @@ export async function run(): Promise<void> {
         "No data for historical runs on master/main branch found. Can't compare.";
     } else {
       const latestRunOnMaster = latestRunsOnMaster[0];
+      if (!latestRunOnMaster.run_started_at) {
+        throw new Error("Missing run_started_at for latest run on master");
+      }
       const latestMasterRunDurationInMillis =
         new Date(latestRunOnMaster.updated_at).getTime() -
         new Date(latestRunOnMaster.run_started_at).getTime();
       const diffInSeconds =
         (currentRunDurationInMillis - latestMasterRunDurationInMillis) / 1000;
-      const percentageDiff = (
+      const percentageDiff =
         (1 - currentRunDurationInMillis / latestMasterRunDurationInMillis) *
-        100
-      ).toFixed(2);
+        100;
       const outcome = diffInSeconds > 0 ? "an increase" : "a decrease";
 
       outputMessage =
@@ -59,29 +65,16 @@ export async function run(): Promise<void> {
         " with " +
         Math.abs(diffInSeconds) +
         "s (" +
-        Math.abs(percentageDiff) +
+        Math.abs(percentageDiff).toFixed(2) +
         "%) compared to latest run on master/main.";
     }
 
-    const commentData = {
+    const existingComments = await github.rest.issues.listComments({
       owner: context.repo.owner,
       repo: context.repo.repo,
       issue_number: context.issue.number,
-    };
-
-    const comments = await github.rest.issues.listComments(commentData);
-
-    /**
-     * Add the body content after comments are fetched so that it's
-     * not included in the search for existing comments.
-     */
-    commentData.body = outputMessage;
-
-    /**
-     * Search comments from the bottom-up to find the most recent comment
-     * from the GitHub Actions bot that matches our criteria.
-     */
-    const existingComment = comments.data.reverse().find((comment) => {
+    });
+    const existingComment = existingComments.data.reverse().find((comment) => {
       return (
         comment?.user?.login === "github-actions[bot]" &&
         comment?.user?.type === "Bot" &&
@@ -89,14 +82,21 @@ export async function run(): Promise<void> {
       );
     });
 
-    // If the comment exists then update instead of creating a new one.
-    const action = existingComment ? "updateComment" : "createComment";
+    const commentInput = {
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      issue_number: context.issue.number,
+      body: outputMessage,
+    };
 
     if (existingComment) {
-      commentData.comment_id = existingComment.id;
+      await github.rest.issues["updateComment"]({
+        ...commentInput,
+        comment_id: existingComment.id,
+      });
+    } else {
+      await github.rest.issues["createComment"](commentInput);
     }
-
-    await github.rest.issues[action](commentData);
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
   }

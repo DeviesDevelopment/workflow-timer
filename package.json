@@ -13,7 +13,9 @@
   },
   "scripts": {
     "package": "npx rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
-    "package:watch": "npm run package -- --watch"
+    "package:watch": "npm run package -- --watch",
+    "tsc": "tsc --noEmit",
+    "all": "npm run tsc && npm run package"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
