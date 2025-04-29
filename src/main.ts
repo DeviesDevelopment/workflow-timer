@@ -1,19 +1,18 @@
 import * as core from '@actions/core'
-import { getOctokit, context } from '@actions/github'
+import { context } from '@actions/github'
+import { GitHubClient } from './githubClient.js'
 
 export async function run(): Promise<void> {
   try {
-    const github = getOctokit(core.getInput('token'))
+    const token = core.getInput('token')
+    const ghClient = new GitHubClient(token, context)
     if (context.eventName != 'pull_request') {
       return
     }
 
     const currentTime = new Date().getTime()
-    const currentRun = await github.rest.actions.getWorkflowRun({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      run_id: context.runId
-    })
+    const currentRun = await ghClient.getCurrentWorkflowRun()
+
     const startedAt = currentRun.data.run_started_at
     if (!startedAt) {
       throw new Error('Missing run_started_at for current workflow run')
@@ -23,11 +22,7 @@ export async function run(): Promise<void> {
       currentTime - new Date(startedAt).getTime()
 
     const workflowId = currentRun.data.workflow_id
-    const historical_runs = await github.rest.actions.listWorkflowRuns({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      workflow_id: workflowId
-    })
+    const historical_runs = await ghClient.listWorkflowRuns(workflowId)
 
     const latestRunsOnMaster = historical_runs.data.workflow_runs.filter(
       (x) =>
@@ -68,11 +63,7 @@ export async function run(): Promise<void> {
         '%) compared to latest run on master/main.'
     }
 
-    const existingComments = await github.rest.issues.listComments({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      issue_number: context.issue.number
-    })
+    const existingComments = await ghClient.listComments()
     const existingComment = existingComments.data.reverse().find((comment) => {
       return (
         comment?.user?.login === 'github-actions[bot]' &&
@@ -81,20 +72,10 @@ export async function run(): Promise<void> {
       )
     })
 
-    const commentInput = {
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      issue_number: context.issue.number,
-      body: outputMessage
-    }
-
     if (existingComment) {
-      await github.rest.issues['updateComment']({
-        ...commentInput,
-        comment_id: existingComment.id
-      })
+      await ghClient.updateComment(existingComment.id, outputMessage)
     } else {
-      await github.rest.issues['createComment'](commentInput)
+      await ghClient.createComment(outputMessage)
     }
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
