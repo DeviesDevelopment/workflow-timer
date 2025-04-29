@@ -1,6 +1,8 @@
 import * as core from '@actions/core'
 import { context } from '@actions/github'
 import { GitHubClient } from './githubClient.js'
+import { analyze as analyzeDuration } from './durationAnalyzer.js'
+import { DurationReport } from './types.js'
 
 export async function run(): Promise<void> {
   try {
@@ -18,54 +20,13 @@ export async function run(): Promise<void> {
       succeededOnMainBranch
     )
 
-    const startedAt = currentRun.data.run_started_at
-    if (!startedAt) {
-      throw new Error('Missing run_started_at for current workflow run')
-    }
-
-    const currentTime = new Date().getTime()
-    const currentRunDurationInMillis =
-      currentTime - new Date(startedAt).getTime()
-
-    let outputMessage = ''
-    if (!latestRunOnMaster) {
-      outputMessage =
-        "No data for historical runs on master/main branch found. Can't compare."
-    } else {
-      if (!latestRunOnMaster.run_started_at) {
-        throw new Error('Missing run_started_at for latest run on master')
-      }
-      const latestMasterRunDurationInMillis =
-        new Date(latestRunOnMaster.updated_at).getTime() -
-        new Date(latestRunOnMaster.run_started_at).getTime()
-      const diffInSeconds =
-        (currentRunDurationInMillis - latestMasterRunDurationInMillis) / 1000
-      const percentageDiff =
-        (1 - currentRunDurationInMillis / latestMasterRunDurationInMillis) * 100
-      const outcome = diffInSeconds > 0 ? 'an increase' : 'a decrease'
-
-      outputMessage =
-        '🕒 Workflow "' +
-        context.workflow +
-        '" took ' +
-        currentRunDurationInMillis / 1000 +
-        's which is ' +
-        outcome +
-        ' with ' +
-        Math.abs(diffInSeconds) +
-        's (' +
-        Math.abs(percentageDiff).toFixed(2) +
-        '%) compared to latest run on master/main.'
-    }
+    const durationReport = analyzeDuration(currentRun.data, latestRunOnMaster)
+    const outputMessage = generateComment(context.workflow, durationReport)
 
     const existingComments = await ghClient.listComments()
-    const existingComment = existingComments.data.reverse().find((comment) => {
-      return (
-        comment?.user?.login === 'github-actions[bot]' &&
-        comment?.user?.type === 'Bot' &&
-        comment?.body?.startsWith(`🕒 Workflow "${context.workflow}" took `)
-      )
-    })
+    const existingComment = existingComments.data
+      .reverse()
+      .find(previousCommentFor(context.workflow))
 
     if (existingComment) {
       await ghClient.updateComment(existingComment.id, outputMessage)
@@ -87,5 +48,40 @@ function succeededOnMainBranch(workflowRun: {
     (head_branch === 'master' || head_branch === 'main') &&
     status === 'completed' &&
     conclusion === 'success'
+  )
+}
+
+function previousCommentFor(workflowName: string) {
+  return (comment: {
+    user: { login: string; type: string } | null
+    body?: string
+  }) => {
+    return (
+      comment.user?.login === 'github-actions[bot]' &&
+      comment.user?.type === 'Bot' &&
+      comment.body?.startsWith(`🕒 Workflow "${workflowName}" took `)
+    )
+  }
+}
+
+function generateComment(
+  workflowName: string,
+  durationReport?: DurationReport
+) {
+  if (!durationReport) {
+    return "No data for historical runs on master/main branch found. Can't compare."
+  }
+  return (
+    '🕒 Workflow "' +
+    workflowName +
+    '" took ' +
+    durationReport.durationInSeconds +
+    's which is ' +
+    (durationReport.diffInSeconds > 0 ? 'an increase' : 'a decrease') +
+    ' with ' +
+    Math.abs(durationReport.diffInSeconds) +
+    's (' +
+    Math.abs(durationReport.diffInPercentage).toFixed(2) +
+    '%) compared to latest run on master/main.'
   )
 }
