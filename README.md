@@ -16,7 +16,7 @@ effects. It's about creating awareness for the developer.
 
 ## How to use it
 
-As the **very last job** in your workflow, add
+As the **very first job** in your workflow, add
 
 ```yml
 - name: Time reporter
