@@ -39,16 +39,39 @@ const DEFAULT_WORKFLOW_RUN = {
   updated_at: '2025-04-29T14:07:00Z'
 }
 
-const DEFAULT_COMMENT = {
-  id: 0
-}
+const fixedNow = new Date('2025-04-29T14:00:00Z')
 
 describe('main', () => {
   let run: typeof import('../src/main.js').run
 
   beforeEach(async () => {
+    jest.useFakeTimers().setSystemTime(fixedNow.getTime())
     const mainModule = await import('../src/main.js')
     run = mainModule.run
+
+    listComments.mockReturnValue(
+      Promise.resolve({
+        data: []
+      })
+    )
+    listWorkflowRuns.mockReturnValue(
+      Promise.resolve({
+        data: {
+          workflow_runs: []
+        }
+      })
+    )
+    getCurrentWorkflowRun.mockReturnValue(
+      Promise.resolve({
+        data: {
+          ...DEFAULT_WORKFLOW_RUN
+        }
+      })
+    )
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
   })
 
   it('does nothing for non-pull_request events', async () => {
@@ -61,29 +84,47 @@ describe('main', () => {
   })
 
   it('creates comment if no previous one is found', async () => {
-    getCurrentWorkflowRun.mockReturnValueOnce(
-      Promise.resolve({
-        data: {
-          ...DEFAULT_WORKFLOW_RUN
-        }
-      })
+    await run(
+      {
+        ...DEFAULT_CONTEXT,
+        eventName: 'pull_request',
+        workflow: 'My workflow'
+      },
+      'fake-token'
     )
-    listWorkflowRuns.mockReturnValueOnce(
-      Promise.resolve({
-        data: {
-          workflow_runs: [{ ...DEFAULT_WORKFLOW_RUN }]
-        }
-      })
-    )
-    listComments.mockReturnValueOnce(
-      Promise.resolve({
-        data: [{ ...DEFAULT_COMMENT }]
-      })
-    )
-    await run({ ...DEFAULT_CONTEXT, eventName: 'pull_request' }, 'fake-token')
 
     expect(createComment).toHaveBeenCalledWith(
-      '🕒 Workflow "" has no historical runs on master/main branch. Can\'t compare.'
+      '🕒 Workflow "My workflow" has no historical runs on master/main branch. Can\'t compare.'
+    )
+  })
+
+  it('updates comment if previous one is found', async () => {
+    listComments.mockReturnValueOnce(
+      Promise.resolve({
+        data: [
+          {
+            id: 42,
+            user: {
+              login: 'github-actions[bot]',
+              type: 'Bot'
+            },
+            body: '🕒 Workflow "Another workflow" took...'
+          }
+        ]
+      })
+    )
+    await run(
+      {
+        ...DEFAULT_CONTEXT,
+        eventName: 'pull_request',
+        workflow: 'Another workflow'
+      },
+      'fake-token'
+    )
+
+    expect(updateComment).toHaveBeenCalledWith(
+      42,
+      '🕒 Workflow "Another workflow" has no historical runs on master/main branch. Can\'t compare.'
     )
   })
 })

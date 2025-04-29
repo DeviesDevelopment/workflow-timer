@@ -8,7 +8,7 @@ export function previousCommentFor(workflowName: string) {
     return (
       comment.user?.login === 'github-actions[bot]' &&
       comment.user?.type === 'Bot' &&
-      comment.body?.startsWith(`🕒 Workflow "${workflowName}" took `)
+      comment.body?.startsWith(`🕒 Workflow "${workflowName}"`)
     )
   }
 }
