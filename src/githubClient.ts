@@ -1,16 +1,6 @@
 import { getOctokit } from '@actions/github'
 import { context } from '@actions/github'
-
-type GhActionsContext = {
-  repo: {
-    owner: string
-    repo: string
-  }
-  issue: {
-    number: number
-  }
-  runId: number
-}
+import { GhActionsContext } from './types.js'
 
 export class GitHubClient {
   github

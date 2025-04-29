@@ -1,9 +1,12 @@
 import { GitHubClient } from './githubClient.js'
 import { calculateDuration as calculateDuration } from './durationCalculator.js'
 import { generateComment, previousCommentFor } from './commentManager.js'
-import { Context } from '@actions/github/lib/context.js'
+import { GhActionsContext } from './types.js'
 
-export async function run(context: Context, token: string): Promise<void> {
+export async function run(
+  context: GhActionsContext,
+  token: string
+): Promise<void> {
   const ghClient = new GitHubClient(token, context)
   if (context.eventName != 'pull_request') {
     return
