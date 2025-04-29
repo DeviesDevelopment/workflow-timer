@@ -10,33 +10,32 @@ export async function run(): Promise<void> {
       return
     }
 
-    const currentTime = new Date().getTime()
     const currentRun = await ghClient.getCurrentWorkflowRun()
+    const historical_runs = await ghClient.listWorkflowRuns(
+      currentRun.data.workflow_id
+    )
+    const latestRunOnMaster = historical_runs.data.workflow_runs.find(
+      (workflow_run) =>
+        (workflow_run.head_branch === 'master' ||
+          workflow_run.head_branch === 'main') &&
+        workflow_run.status === 'completed' &&
+        workflow_run.conclusion == 'success'
+    )
 
     const startedAt = currentRun.data.run_started_at
     if (!startedAt) {
       throw new Error('Missing run_started_at for current workflow run')
     }
 
+    const currentTime = new Date().getTime()
     const currentRunDurationInMillis =
       currentTime - new Date(startedAt).getTime()
 
-    const workflowId = currentRun.data.workflow_id
-    const historical_runs = await ghClient.listWorkflowRuns(workflowId)
-
-    const latestRunsOnMaster = historical_runs.data.workflow_runs.filter(
-      (x) =>
-        (x.head_branch === 'master' || x.head_branch === 'main') &&
-        x.status === 'completed' &&
-        x.conclusion == 'success'
-    )
-
     let outputMessage = ''
-    if (latestRunsOnMaster.length === 0) {
+    if (!latestRunOnMaster) {
       outputMessage =
         "No data for historical runs on master/main branch found. Can't compare."
     } else {
-      const latestRunOnMaster = latestRunsOnMaster[0]
       if (!latestRunOnMaster.run_started_at) {
         throw new Error('Missing run_started_at for latest run on master')
       }
