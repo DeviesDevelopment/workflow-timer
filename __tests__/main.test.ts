@@ -127,4 +127,39 @@ describe('main', () => {
       '🕒 Workflow "Another workflow" has no historical runs on master/main branch. Can\'t compare.'
     )
   })
+
+  it('includes duration information if previous workflow run is found', async () => {
+    getCurrentWorkflowRun.mockReturnValueOnce({
+      data: {
+        run_started_at: '2025-04-29T13:57:00Z',
+        workflow_id: 42
+      }
+    })
+    listWorkflowRuns.mockReturnValueOnce({
+      data: {
+        workflow_runs: [
+          {
+            ...DEFAULT_WORKFLOW_RUN,
+            run_started_at: '2025-04-28T13:55:00Z',
+            updated_at: '2025-04-28T13:56:00Z',
+            head_branch: 'main',
+            status: 'completed',
+            conclusion: 'success'
+          }
+        ]
+      }
+    })
+    await run(
+      {
+        ...DEFAULT_CONTEXT,
+        eventName: 'pull_request',
+        workflow: 'Some workflow'
+      },
+      'fake-token'
+    )
+
+    expect(createComment).toHaveBeenCalledWith(
+      '🕒 Workflow "Some workflow" took 180s which is an increase with 120s (200.00%) compared to latest run on master/main.'
+    )
+  })
 })
