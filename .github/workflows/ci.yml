@@ -39,5 +39,4 @@ jobs:
         run: npm run test
 
       - name: Workflow timer
-        continue-on-error: true
         uses: './'
