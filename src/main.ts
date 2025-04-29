@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import { context } from '@actions/github'
 import { GitHubClient } from './githubClient.js'
 import { calculateDuration as calculateDuration } from './durationCalculator.js'
-import { DurationReport } from './types.js'
+import { generateComment, previousCommentFor } from './commentManager.js'
 
 export async function run(): Promise<void> {
   try {
@@ -48,40 +48,5 @@ function succeededOnMainBranch(workflowRun: {
     (head_branch === 'master' || head_branch === 'main') &&
     status === 'completed' &&
     conclusion === 'success'
-  )
-}
-
-function previousCommentFor(workflowName: string) {
-  return (comment: {
-    user: { login: string; type: string } | null
-    body?: string
-  }) => {
-    return (
-      comment.user?.login === 'github-actions[bot]' &&
-      comment.user?.type === 'Bot' &&
-      comment.body?.startsWith(`🕒 Workflow "${workflowName}" took `)
-    )
-  }
-}
-
-function generateComment(
-  workflowName: string,
-  durationReport?: DurationReport
-) {
-  if (!durationReport) {
-    return "No data for historical runs on master/main branch found. Can't compare."
-  }
-  return (
-    '🕒 Workflow "' +
-    workflowName +
-    '" took ' +
-    durationReport.durationInSeconds +
-    's which is ' +
-    (durationReport.diffInSeconds > 0 ? 'an increase' : 'a decrease') +
-    ' with ' +
-    Math.abs(durationReport.diffInSeconds) +
-    's (' +
-    Math.abs(durationReport.diffInPercentage).toFixed(2) +
-    '%) compared to latest run on master/main.'
   )
 }
