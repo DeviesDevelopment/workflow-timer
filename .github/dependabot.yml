@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directories:
+      - '/'
+    schedule:
+      interval: 'weekly'
+    groups:
+      minor/patch:
+        update-types:
+          - 'patch'
+          - 'minor'
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 5
