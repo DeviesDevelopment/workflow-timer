@@ -3,7 +3,7 @@
 Workflow-timer is a GitHub action that measures the duration of the workflow and
 compares it to the duration of historical runs.
 
-The action should be triggered on `pull_requests` hence it will create a comment
+The action should be triggered on `pull_request` hence it will create a comment
 on the PR with information like:
 
 `🕒 Workflow "Unit tests" took 22.056s which is a decrease with 6.944s (23.94%) compared to latest run on master/main.`
@@ -20,7 +20,7 @@ As the **very last job** in your workflow, add
 
 ```yml
 - name: Time reporter
-  uses: DeviesDevelopment/workflow-timer@v0.0.2
+  uses: DeviesDevelopment/workflow-timer@v0.0.4
 ```
 
 Workflow-timer compares the current workflow run with the latest run on the
@@ -34,6 +34,15 @@ on:
     branches: master
   pull_request:
     branches: master
+```
+
+If workflow-timer is used in a private repository, additional permissions are
+required. Add the following permissions to the workflow:
+
+```yaml
+permissions:
+  actions: read
+  pull-requests: write
 ```
 
 ## How to contribute
