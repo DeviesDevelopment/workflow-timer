@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import { context } from '@actions/github'
 import { GitHubClient } from './githubClient.js'
-import { analyze as analyzeDuration } from './durationAnalyzer.js'
+import { calculateDuration as calculateDuration } from './durationCalculator.js'
 import { DurationReport } from './types.js'
 
 export async function run(): Promise<void> {
@@ -20,7 +20,7 @@ export async function run(): Promise<void> {
       succeededOnMainBranch
     )
 
-    const durationReport = analyzeDuration(currentRun.data, latestRunOnMaster)
+    const durationReport = calculateDuration(currentRun.data, latestRunOnMaster)
     const outputMessage = generateComment(context.workflow, durationReport)
 
     const existingComments = await ghClient.listComments()

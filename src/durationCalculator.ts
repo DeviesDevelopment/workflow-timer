@@ -5,7 +5,7 @@ type WorkflowRun = {
   updated_at: string
 }
 
-export function analyze(
+export function calculateDuration(
   current: WorkflowRun,
   last?: WorkflowRun
 ): DurationReport | undefined {
