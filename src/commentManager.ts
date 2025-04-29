@@ -18,7 +18,7 @@ export function generateComment(
   durationReport?: DurationReport
 ) {
   if (!durationReport) {
-    return `🕒 Workflow "${workflowName}" has no historical runs on master/main branch. Can't compare.`;
+    return `🕒 Workflow "${workflowName}" has no historical runs on master/main branch. Can't compare.`
   }
   return (
     '🕒 Workflow "' +
