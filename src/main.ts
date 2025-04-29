@@ -1,4 +1,4 @@
-import { GitHubClient } from './githubClient.js'
+import GitHubClient from './githubClient.js'
 import { calculateDuration as calculateDuration } from './durationCalculator.js'
 import { generateComment, previousCommentFor } from './commentManager.js'
 import { GhActionsContext } from './types.js'

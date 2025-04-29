@@ -2,7 +2,7 @@ import { getOctokit } from '@actions/github'
 import { context } from '@actions/github'
 import { GhActionsContext } from './types.js'
 
-export class GitHubClient {
+export default class GitHubClient {
   github
   ctx
 
