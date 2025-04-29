@@ -15,11 +15,7 @@ export async function run(): Promise<void> {
       currentRun.data.workflow_id
     )
     const latestRunOnMaster = historical_runs.data.workflow_runs.find(
-      (workflow_run) =>
-        (workflow_run.head_branch === 'master' ||
-          workflow_run.head_branch === 'main') &&
-        workflow_run.status === 'completed' &&
-        workflow_run.conclusion == 'success'
+      succeededOnMainBranch
     )
 
     const startedAt = currentRun.data.run_started_at
@@ -79,4 +75,17 @@ export async function run(): Promise<void> {
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
+}
+
+function succeededOnMainBranch(workflowRun: {
+  head_branch: string | null
+  status: string | null
+  conclusion: string | null
+}) {
+  const { head_branch, status, conclusion } = workflowRun
+  return (
+    (head_branch === 'master' || head_branch === 'main') &&
+    status === 'completed' &&
+    conclusion === 'success'
+  )
 }
