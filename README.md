@@ -23,9 +23,10 @@ As the **very last job** in your workflow, add
   uses: DeviesDevelopment/workflow-timer@v0.0.4
 ```
 
-Workflow-timer compares the current workflow run with the latest run on another branch (typically your default branch).
-Therefore, the same workflow needs to run when merging with that other branch as well, otherwise, there will be no data to compare.
-We suggest having the following definition in the workflow:
+Workflow-timer compares the current workflow run with the latest run on another
+branch (typically your default branch). Therefore, the same workflow needs to
+run when merging with that other branch as well, otherwise, there will be no
+data to compare. We suggest having the following definition in the workflow:
 
 ```yml
 on:
@@ -46,7 +47,8 @@ permissions:
 
 ### Setting a custom branch to compare with
 
-If you use a different branch than `main` as your default branch, you can specify what branch to compare with.
+If you use a different branch than `main` as your default branch, you can
+specify what branch to compare with.
 
 ```yml
 - name: Time reporter
