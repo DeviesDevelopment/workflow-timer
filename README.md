@@ -52,7 +52,7 @@ If you use a different branch than `main` as your default branch, you can specif
 - name: Time reporter
   uses: DeviesDevelopment/workflow-timer@v0.0.4
   with:
-    compare_branch: 'your-branch-name'
+    compareBranch: 'your-branch-name'
 ```
 
 ## How to contribute
