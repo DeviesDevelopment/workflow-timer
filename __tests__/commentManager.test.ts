@@ -44,9 +44,9 @@ describe('previousCommentFor', () => {
 
 describe('generateComment', () => {
   it('returns fallback message when durationReport is undefined', () => {
-    const result = generateComment('My Workflow', undefined)
+    const result = generateComment('My Workflow', 'main', undefined)
     expect(result).toBe(
-      '🕒 Workflow "My Workflow" has no historical runs on master/main branch. Can\'t compare.'
+      '🕒 Workflow "My Workflow" has no historical runs on main branch. Can\'t compare.'
     )
   })
 
@@ -56,9 +56,9 @@ describe('generateComment', () => {
       diffInSeconds: 30,
       diffInPercentage: -50
     }
-    const result = generateComment('My Workflow', report)
+    const result = generateComment('My Workflow', 'main', report)
     expect(result).toBe(
-      '🕒 Workflow "My Workflow" took 90s which is an increase with 30s (50.00%) compared to latest run on master/main.'
+      '🕒 Workflow "My Workflow" took 90s which is an increase with 30s (50.00%) compared to latest run on main.'
     )
   })
 
@@ -68,9 +68,16 @@ describe('generateComment', () => {
       diffInSeconds: -20,
       diffInPercentage: 25
     }
-    const result = generateComment('Deploy', report)
+    const result = generateComment('Deploy', 'main', report)
     expect(result).toBe(
-      '🕒 Workflow "Deploy" took 60s which is a decrease with 20s (25.00%) compared to latest run on master/main.'
+      '🕒 Workflow "Deploy" took 60s which is a decrease with 20s (25.00%) compared to latest run on main.'
+    )
+  })
+
+  it('produces comments with proper branch name', () => {
+    const result = generateComment('My Workflow', 'develop', undefined)
+    expect(result).toBe(
+      '🕒 Workflow "My Workflow" has no historical runs on develop branch. Can\'t compare.'
     )
   })
 })

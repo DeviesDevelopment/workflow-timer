@@ -9,6 +9,12 @@ inputs:
   token:
     description: 'GITHUB_TOKEN or a repo scoped PAT.'
     default: ${{ github.token }}
+  compareBranch:
+    description:
+      'Branch to compare workflow durations with (typically your default
+      branch).'
+    required: false
+    default: 'main'
 runs:
   using: 'node20'
   main: 'dist/index.js'

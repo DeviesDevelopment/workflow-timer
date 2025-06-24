@@ -5,7 +5,8 @@ import { GhActionsContext } from './types.js'
 
 export async function run(
   context: GhActionsContext,
-  token: string
+  token: string,
+  compareBranch: string
 ): Promise<void> {
   const ghClient = new GitHubClient(token, context)
   if (context.eventName != 'pull_request') {
@@ -16,12 +17,19 @@ export async function run(
   const historical_runs = await ghClient.listWorkflowRuns(
     currentRun.data.workflow_id
   )
-  const latestRunOnMaster = historical_runs.data.workflow_runs.find(
-    succeededOnMainBranch
+  const latestRunOnCompareBranch = historical_runs.data.workflow_runs.find(
+    (run) => succeededOnBranch(run, compareBranch)
   )
 
-  const durationReport = calculateDuration(currentRun.data, latestRunOnMaster)
-  const outputMessage = generateComment(context.workflow, durationReport)
+  const durationReport = calculateDuration(
+    currentRun.data,
+    latestRunOnCompareBranch
+  )
+  const outputMessage = generateComment(
+    context.workflow,
+    compareBranch,
+    durationReport
+  )
 
   const existingComments = await ghClient.listComments()
   const existingComment = existingComments.data
@@ -35,14 +43,17 @@ export async function run(
   }
 }
 
-function succeededOnMainBranch(workflowRun: {
-  head_branch: string | null
-  status: string | null
-  conclusion: string | null
-}) {
+function succeededOnBranch(
+  workflowRun: {
+    head_branch: string | null
+    status: string | null
+    conclusion: string | null
+  },
+  target_branch: string
+) {
   const { head_branch, status, conclusion } = workflowRun
   return (
-    (head_branch === 'master' || head_branch === 'main') &&
+    head_branch === target_branch &&
     status === 'completed' &&
     conclusion === 'success'
   )

@@ -15,10 +15,11 @@ export function previousCommentFor(workflowName: string) {
 
 export function generateComment(
   workflowName: string,
+  compareBranch: string,
   durationReport?: DurationReport
 ) {
   if (!durationReport) {
-    return `🕒 Workflow "${workflowName}" has no historical runs on master/main branch. Can't compare.`
+    return `🕒 Workflow "${workflowName}" has no historical runs on ${compareBranch} branch. Can't compare.`
   }
   return (
     '🕒 Workflow "' +
@@ -31,6 +32,6 @@ export function generateComment(
     Math.abs(durationReport.diffInSeconds) +
     's (' +
     Math.abs(durationReport.diffInPercentage).toFixed(2) +
-    '%) compared to latest run on master/main.'
+    `%) compared to latest run on ${compareBranch}.`
   )
 }

@@ -31308,9 +31308,9 @@ function previousCommentFor(workflowName) {
             comment.body?.startsWith(`🕒 Workflow "${workflowName}"`));
     };
 }
-function generateComment(workflowName, durationReport) {
+function generateComment(workflowName, compareBranch, durationReport) {
     if (!durationReport) {
-        return `🕒 Workflow "${workflowName}" has no historical runs on master/main branch. Can't compare.`;
+        return `🕒 Workflow "${workflowName}" has no historical runs on ${compareBranch} branch. Can't compare.`;
     }
     return ('🕒 Workflow "' +
         workflowName +
@@ -31322,19 +31322,19 @@ function generateComment(workflowName, durationReport) {
         Math.abs(durationReport.diffInSeconds) +
         's (' +
         Math.abs(durationReport.diffInPercentage).toFixed(2) +
-        '%) compared to latest run on master/main.');
+        `%) compared to latest run on ${compareBranch}.`);
 }
 
-async function run(context, token) {
+async function run(context, token, compareBranch) {
     const ghClient = new GitHubClient(token, context);
     if (context.eventName != 'pull_request') {
         return;
     }
     const currentRun = await ghClient.getCurrentWorkflowRun();
     const historical_runs = await ghClient.listWorkflowRuns(currentRun.data.workflow_id);
-    const latestRunOnMaster = historical_runs.data.workflow_runs.find(succeededOnMainBranch);
-    const durationReport = calculateDuration(currentRun.data, latestRunOnMaster);
-    const outputMessage = generateComment(context.workflow, durationReport);
+    const latestRunOnCompareBranch = historical_runs.data.workflow_runs.find((run) => succeededOnBranch(run, compareBranch));
+    const durationReport = calculateDuration(currentRun.data, latestRunOnCompareBranch);
+    const outputMessage = generateComment(context.workflow, compareBranch, durationReport);
     const existingComments = await ghClient.listComments();
     const existingComment = existingComments.data
         .reverse()
@@ -31346,16 +31346,17 @@ async function run(context, token) {
         await ghClient.createComment(outputMessage);
     }
 }
-function succeededOnMainBranch(workflowRun) {
+function succeededOnBranch(workflowRun, target_branch) {
     const { head_branch, status, conclusion } = workflowRun;
-    return ((head_branch === 'master' || head_branch === 'main') &&
+    return (head_branch === target_branch &&
         status === 'completed' &&
         conclusion === 'success');
 }
 
 try {
     const token = coreExports.getInput('token');
-    run(githubExports.context, token);
+    const compareBranch = coreExports.getInput('compareBranch');
+    run(githubExports.context, token, compareBranch);
 }
 catch (error) {
     if (error instanceof Error) {

@@ -77,7 +77,8 @@ describe('main', () => {
   it('does nothing for non-pull_request events', async () => {
     await run(
       { ...DEFAULT_CONTEXT, eventName: 'not-pull_request' },
-      'fake-token'
+      'fake-token',
+      'main'
     )
     expect(createComment).not.toHaveBeenCalled()
     expect(updateComment).not.toHaveBeenCalled()
@@ -90,11 +91,12 @@ describe('main', () => {
         eventName: 'pull_request',
         workflow: 'My workflow'
       },
-      'fake-token'
+      'fake-token',
+      'main'
     )
 
     expect(createComment).toHaveBeenCalledWith(
-      '🕒 Workflow "My workflow" has no historical runs on master/main branch. Can\'t compare.'
+      '🕒 Workflow "My workflow" has no historical runs on main branch. Can\'t compare.'
     )
   })
 
@@ -119,12 +121,13 @@ describe('main', () => {
         eventName: 'pull_request',
         workflow: 'Another workflow'
       },
-      'fake-token'
+      'fake-token',
+      'main'
     )
 
     expect(updateComment).toHaveBeenCalledWith(
       42,
-      '🕒 Workflow "Another workflow" has no historical runs on master/main branch. Can\'t compare.'
+      '🕒 Workflow "Another workflow" has no historical runs on main branch. Can\'t compare.'
     )
   })
 
@@ -155,11 +158,12 @@ describe('main', () => {
         eventName: 'pull_request',
         workflow: 'Some workflow'
       },
-      'fake-token'
+      'fake-token',
+      'main'
     )
 
     expect(createComment).toHaveBeenCalledWith(
-      '🕒 Workflow "Some workflow" took 180s which is an increase with 120s (200.00%) compared to latest run on master/main.'
+      '🕒 Workflow "Some workflow" took 180s which is an increase with 120s (200.00%) compared to latest run on main.'
     )
   })
 })
