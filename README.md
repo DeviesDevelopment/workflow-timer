@@ -20,7 +20,7 @@ As the **very last job** in your workflow, add
 
 ```yml
 - name: Time reporter
-  uses: DeviesDevelopment/workflow-timer@v0.0.4
+  uses: DeviesDevelopment/workflow-timer@v0.1.1
 ```
 
 Workflow-timer compares the current workflow run with the latest run on another
@@ -52,7 +52,7 @@ specify what branch to compare with.
 
 ```yml
 - name: Time reporter
-  uses: DeviesDevelopment/workflow-timer@v0.0.4
+  uses: DeviesDevelopment/workflow-timer@v0.1.1
   with:
     compareBranch: 'your-branch-name'
 ```
