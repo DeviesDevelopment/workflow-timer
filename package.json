@@ -1,7 +1,7 @@
 {
   "name": "workflow-timer",
   "description": "Workflow-timer is a GitHub action that measures the duration of the workflow and compares it to the duration of historical runs.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "author": "",
   "type": "module",
   "license": "MIT",
