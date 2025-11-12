@@ -41,5 +41,3 @@ jobs:
       - name: Workflow timer
         uses: './'
         continue-on-error: true
-        with:
-          percentageThreshold: 70
