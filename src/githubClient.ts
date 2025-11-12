@@ -53,4 +53,12 @@ export default class GitHubClient {
       body
     })
   }
+
+  async deleteComment(commentId: number) {
+    return this.github.rest.issues.deleteComment({
+      owner: this.ctx.repo.owner,
+      repo: this.ctx.repo.repo,
+      comment_id: commentId
+    })
+  }
 }

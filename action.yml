@@ -15,6 +15,12 @@ inputs:
       branch).'
     required: false
     default: 'main'
+  percentageThreshold:
+    description:
+      'Minimum percentage change required to post a comment. Set to 0 to always
+      post comments.'
+    required: false
+    default: '0'
 runs:
   using: 'node24'
   main: 'dist/index.js'
