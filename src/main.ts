@@ -36,20 +36,25 @@ export async function run(
     .reverse()
     .find(previousCommentFor(context.workflow))
 
-  if (meetsThreshold) {
-    const outputMessage = generateComment(
-      context.workflow,
-      compareBranch,
-      durationReport
-    )
-
-    if (existingComment) {
-      await ghClient.updateComment(existingComment.id, outputMessage)
-    } else {
-      await ghClient.createComment(outputMessage)
-    }
-  } else if (existingComment) {
+  if (!meetsThreshold && existingComment) {
     await ghClient.deleteComment(existingComment.id)
+    return
+  }
+
+  if (!meetsThreshold) {
+    return
+  }
+
+  const outputMessage = generateComment(
+    context.workflow,
+    compareBranch,
+    durationReport
+  )
+
+  if (existingComment) {
+    await ghClient.updateComment(existingComment.id, outputMessage)
+  } else {
+    await ghClient.createComment(outputMessage)
   }
 }
 

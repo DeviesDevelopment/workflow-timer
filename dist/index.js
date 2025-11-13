@@ -31347,17 +31347,19 @@ async function run(context, token, compareBranch, percentageThreshold = 0) {
     const existingComment = existingComments.data
         .reverse()
         .find(previousCommentFor(context.workflow));
-    if (meetsThreshold) {
-        const outputMessage = generateComment(context.workflow, compareBranch, durationReport);
-        if (existingComment) {
-            await ghClient.updateComment(existingComment.id, outputMessage);
-        }
-        else {
-            await ghClient.createComment(outputMessage);
-        }
-    }
-    else if (existingComment) {
+    if (!meetsThreshold && existingComment) {
         await ghClient.deleteComment(existingComment.id);
+        return;
+    }
+    if (!meetsThreshold) {
+        return;
+    }
+    const outputMessage = generateComment(context.workflow, compareBranch, durationReport);
+    if (existingComment) {
+        await ghClient.updateComment(existingComment.id, outputMessage);
+    }
+    else {
+        await ghClient.createComment(outputMessage);
     }
 }
 function succeededOnBranch(workflowRun, target_branch) {
@@ -31371,6 +31373,9 @@ try {
     const token = coreExports.getInput('token');
     const compareBranch = coreExports.getInput('compareBranch');
     const percentageThreshold = parseFloat(coreExports.getInput('percentageThreshold'));
+    if (isNaN(percentageThreshold) || percentageThreshold < 0) {
+        throw new Error('percentageThreshold must be a non-negative number');
+    }
     run(githubExports.context, token, compareBranch, percentageThreshold);
 }
 catch (error) {
