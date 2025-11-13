@@ -6,6 +6,7 @@ const listWorkflowRuns = jest.fn()
 const listComments = jest.fn()
 const createComment = jest.fn()
 const updateComment = jest.fn()
+const deleteComment = jest.fn()
 
 jest.unstable_mockModule('../src/githubClient.js', () => ({
   default: class {
@@ -14,6 +15,7 @@ jest.unstable_mockModule('../src/githubClient.js', () => ({
     listComments = listComments
     createComment = createComment
     updateComment = updateComment
+    deleteComment = deleteComment
   }
 }))
 
@@ -78,7 +80,8 @@ describe('main', () => {
     await run(
       { ...DEFAULT_CONTEXT, eventName: 'not-pull_request' },
       'fake-token',
-      'main'
+      'main',
+      0
     )
     expect(createComment).not.toHaveBeenCalled()
     expect(updateComment).not.toHaveBeenCalled()
@@ -92,7 +95,8 @@ describe('main', () => {
         workflow: 'My workflow'
       },
       'fake-token',
-      'main'
+      'main',
+      0
     )
 
     expect(createComment).toHaveBeenCalledWith(
@@ -122,7 +126,8 @@ describe('main', () => {
         workflow: 'Another workflow'
       },
       'fake-token',
-      'main'
+      'main',
+      0
     )
 
     expect(updateComment).toHaveBeenCalledWith(
@@ -159,11 +164,97 @@ describe('main', () => {
         workflow: 'Some workflow'
       },
       'fake-token',
-      'main'
+      'main',
+      0
     )
 
     expect(createComment).toHaveBeenCalledWith(
       '🕒 Workflow "Some workflow" took 180s which is an increase with 120s (200.00%) compared to latest run on main.'
     )
+  })
+
+  it('does not create comment when change is below threshold', async () => {
+    getCurrentWorkflowRun.mockReturnValueOnce({
+      data: {
+        run_started_at: '2025-04-29T13:57:00Z',
+        workflow_id: 42
+      }
+    })
+    listWorkflowRuns.mockReturnValueOnce({
+      data: {
+        workflow_runs: [
+          {
+            ...DEFAULT_WORKFLOW_RUN,
+            run_started_at: '2025-04-28T13:56:30Z',
+            updated_at: '2025-04-28T13:59:40Z',
+            head_branch: 'main',
+            status: 'completed',
+            conclusion: 'success'
+          }
+        ]
+      }
+    })
+    await run(
+      {
+        ...DEFAULT_CONTEXT,
+        eventName: 'pull_request',
+        workflow: 'Some workflow'
+      },
+      'fake-token',
+      'main',
+      10
+    )
+
+    expect(createComment).not.toHaveBeenCalled()
+    expect(updateComment).not.toHaveBeenCalled()
+  })
+
+  it('deletes existing comment when change is below threshold', async () => {
+    getCurrentWorkflowRun.mockReturnValueOnce({
+      data: {
+        run_started_at: '2025-04-29T13:57:00Z',
+        workflow_id: 42
+      }
+    })
+    listWorkflowRuns.mockReturnValueOnce({
+      data: {
+        workflow_runs: [
+          {
+            ...DEFAULT_WORKFLOW_RUN,
+            run_started_at: '2025-04-28T13:56:30Z',
+            updated_at: '2025-04-28T13:59:40Z',
+            head_branch: 'main',
+            status: 'completed',
+            conclusion: 'success'
+          }
+        ]
+      }
+    })
+    listComments.mockReturnValueOnce({
+      data: [
+        {
+          id: 123,
+          user: {
+            login: 'github-actions[bot]',
+            type: 'Bot'
+          },
+          body: '🕒 Workflow "Some workflow" took...'
+        }
+      ]
+    })
+    await run(
+      {
+        ...DEFAULT_CONTEXT,
+        eventName: 'pull_request',
+        workflow: 'Some workflow'
+      },
+      'fake-token',
+      'main',
+      10
+    )
+
+    expect(deleteComment).toHaveBeenCalledWith(123)
+    expect(createComment).not.toHaveBeenCalled()
+    expect(updateComment).not.toHaveBeenCalled()
   })
 })

@@ -31279,6 +31279,13 @@ class GitHubClient {
             body
         });
     }
+    async deleteComment(commentId) {
+        return this.github.rest.issues.deleteComment({
+            owner: this.ctx.repo.owner,
+            repo: this.ctx.repo.repo,
+            comment_id: commentId
+        });
+    }
 }
 
 function calculateDuration(current, last) {
@@ -31325,7 +31332,7 @@ function generateComment(workflowName, compareBranch, durationReport) {
         `%) compared to latest run on ${compareBranch}.`);
 }
 
-async function run(context, token, compareBranch) {
+async function run(context, token, compareBranch, percentageThreshold = 0) {
     const ghClient = new GitHubClient(token, context);
     if (context.eventName != 'pull_request') {
         return;
@@ -31334,11 +31341,20 @@ async function run(context, token, compareBranch) {
     const historical_runs = await ghClient.listWorkflowRuns(currentRun.data.workflow_id);
     const latestRunOnCompareBranch = historical_runs.data.workflow_runs.find((run) => succeededOnBranch(run, compareBranch));
     const durationReport = calculateDuration(currentRun.data, latestRunOnCompareBranch);
-    const outputMessage = generateComment(context.workflow, compareBranch, durationReport);
+    const meetsThreshold = !durationReport ||
+        Math.abs(durationReport.diffInPercentage) >= percentageThreshold;
     const existingComments = await ghClient.listComments();
     const existingComment = existingComments.data
         .reverse()
         .find(previousCommentFor(context.workflow));
+    if (!meetsThreshold && existingComment) {
+        await ghClient.deleteComment(existingComment.id);
+        return;
+    }
+    if (!meetsThreshold) {
+        return;
+    }
+    const outputMessage = generateComment(context.workflow, compareBranch, durationReport);
     if (existingComment) {
         await ghClient.updateComment(existingComment.id, outputMessage);
     }
@@ -31356,7 +31372,11 @@ function succeededOnBranch(workflowRun, target_branch) {
 try {
     const token = coreExports.getInput('token');
     const compareBranch = coreExports.getInput('compareBranch');
-    run(githubExports.context, token, compareBranch);
+    const percentageThreshold = parseFloat(coreExports.getInput('percentageThreshold'));
+    if (isNaN(percentageThreshold) || percentageThreshold < 0) {
+        throw new Error('percentageThreshold must be a non-negative number');
+    }
+    run(githubExports.context, token, compareBranch, percentageThreshold);
 }
 catch (error) {
     if (error instanceof Error) {

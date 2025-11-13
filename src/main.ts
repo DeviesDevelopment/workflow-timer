@@ -6,7 +6,8 @@ import { GhActionsContext } from './types.js'
 export async function run(
   context: GhActionsContext,
   token: string,
-  compareBranch: string
+  compareBranch: string,
+  percentageThreshold: number = 0
 ): Promise<void> {
   const ghClient = new GitHubClient(token, context)
   if (context.eventName != 'pull_request') {
@@ -25,16 +26,30 @@ export async function run(
     currentRun.data,
     latestRunOnCompareBranch
   )
-  const outputMessage = generateComment(
-    context.workflow,
-    compareBranch,
-    durationReport
-  )
+
+  const meetsThreshold =
+    !durationReport ||
+    Math.abs(durationReport.diffInPercentage) >= percentageThreshold
 
   const existingComments = await ghClient.listComments()
   const existingComment = existingComments.data
     .reverse()
     .find(previousCommentFor(context.workflow))
+
+  if (!meetsThreshold && existingComment) {
+    await ghClient.deleteComment(existingComment.id)
+    return
+  }
+
+  if (!meetsThreshold) {
+    return
+  }
+
+  const outputMessage = generateComment(
+    context.workflow,
+    compareBranch,
+    durationReport
+  )
 
   if (existingComment) {
     await ghClient.updateComment(existingComment.id, outputMessage)

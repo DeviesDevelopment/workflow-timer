@@ -57,6 +57,22 @@ specify what branch to compare with.
     compareBranch: 'your-branch-name'
 ```
 
+### Setting a percentage threshold
+
+To avoid comment spam, you can set a minimum percentage change required before a
+comment is posted.
+
+```yml
+- name: Time reporter
+  uses: DeviesDevelopment/workflow-timer@v0.2.0
+  with:
+    percentageThreshold: 10
+```
+
+With `percentageThreshold: 10`, comments will only be posted when the workflow
+duration changes by 10% or more. If a previous comment exists and the threshold
+is no longer met, the comment will be automatically deleted.
+
 ## How to contribute
 
 Feel free to open a pull request! All contributions, no matter how small, are
