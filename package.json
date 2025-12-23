@@ -23,7 +23,7 @@
     "all": "npm run format:write && npm run lint && npm run test && npm run tsc && npm run package"
   },
   "dependencies": {
-    "@actions/core": "^1.11.1",
+    "@actions/core": "^2.0.1",
     "@actions/github": "^6.0.1"
   },
   "devDependencies": {
